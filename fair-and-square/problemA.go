@@ -7,11 +7,12 @@ import (
     "io"
     "fmt"
     "strings"
+    "strconv"
+    "math"
 )
 
 // Read a whole file into the memory and store it as array of lines
 func readLines(path string) (lines []string, err error) {
-    fmt.Println("READING",path)
     var (
         file *os.File
         part []byte
@@ -41,12 +42,77 @@ func readLines(path string) (lines []string, err error) {
     return
 }
 
-func main() {
-  fmt.Println("HELLO, starting")
-  lines, err := readLines( "input.in" )
+func integersFromString(str string) (ints []int) {
+  intStrings := strings.Split(str, " ")
+  for _, intString := range intStrings {
+    intVal, err := strconv.Atoi(intString)
+    if err != nil { panic(err) }
+
+    ints = append(ints, intVal)
+  }
+  return
+}
+
+func integerIsPalindrome(x int) bool {
+  str := strconv.Itoa(x)
+  return str == reverseString(str)
+}
+
+func integerIsPerfectSquare(x int) bool {
+  sqrt := math.Sqrt( float64(x) )
+  return sqrt == math.Floor(sqrt)
+}
+
+func integerIsFairAndSquare(x int) bool {
+  if !integerIsPalindrome(x) { return false }
+
+  if !integerIsPerfectSquare(x) { return false }
+
+  sqrt := math.Sqrt( float64(x) )
+  if integerIsPalindrome( int(sqrt) ) { return true }
+
+  return false
+}
+
+func reverseString(str string) string {
+  bytes := make([]byte, len(str))
+  var j int = len(bytes) - 1
+  for i := 0; i <= j; i++ {
+    bytes[j-i] = str[i]
+  }
+  return string(bytes)
+}
+
+func processInputFile(path string) {
+  lines, err := readLines(path)
   if err != nil { panic(err) }
 
-  for i, line := range lines {
-    fmt.Printf("Line: #%d %s (len %d)\n", i, line, len(line))
+  nextLine, lines := lines[0], lines[1:]
+  testCases, err := strconv.Atoi( nextLine )
+  if err != nil { panic(err) }
+
+  // fmt.Printf("Test cases: %d\n", testCases)
+
+  for i := 0; i < testCases; i++ {
+    nextLine := lines[i]
+    fmt.Printf("Case #%d: %s\n", (i+1), lineResult(nextLine))
   }
+}
+
+func lineResult(line string) string {
+  bounds := integersFromString( line )
+  // fmt.Println("start %d, end %d", bounds[0], bounds[1])
+  return fmt.Sprintf("%d", countFairAndSquareIntegersInBounds( bounds[0], bounds[1] ) )
+}
+
+func countFairAndSquareIntegersInBounds(startInt, endInt int) int {
+  count := 0
+  for i := startInt; i <= endInt; i++ {
+    if integerIsFairAndSquare(i) { count++ }
+  }
+  return count
+}
+
+func main() {
+  processInputFile( "input.in" )
 }

@@ -62,19 +62,12 @@ func getTestCases(lines []string) (caseCount int, testLines [][]string) {
 
   for i := 0; i < caseCount; i++ {
     individualTestLines := make([]string, linesPerTest)
-
-    fmt.Printf("Starting to parse for test case %d\n",i)
-
     startLine := (linesPerTest * i)
 
     for j := startLine; j < (startLine + linesPerTest); j++ {
       testLineIdx := j - startLine
-      fmt.Printf("startLine %d, cur line %d, test line index %d\n", startLine, j, testLineIdx)
-
       individualTestLines[ testLineIdx ] = lines[j]
     }
-    fmt.Printf("done parsing test case %d. lines: %s", i, individualTestLines)
-
     testLines = append(testLines, individualTestLines)
   }
 
@@ -84,14 +77,21 @@ func getTestCases(lines []string) (caseCount int, testLines [][]string) {
 
 func processTest(testNumber int, testLines []string) {
   fmt.Printf("Case #%d: \n", testNumber + 1)
+  fmt.Printf("game lines: %s\n", testLines)
 
-  var grid [][]rune
+  var grid [][]byte
 
   for i, line := range testLines {
-    fmt.Printf("line #%d: %s\n", i, line)
-    // grid = append(grid, []rune(line))
+    fmt.Printf("line #%d: %s %s\n", i, line, []byte(line))
+    grid = append(grid, []byte(line))
   }
-  fmt.Println(grid)
+
+  game := TicTacToeGame{grid:grid}
+  fmt.Printf("game is: %s\n",game)
+  fmt.Printf("game row 1 is: %s\n",game.row(1))
+  fmt.Printf("game col 2 is: %s\n",game.column(2))
+  fmt.Printf("game diag left is: %s\n",game.diagonal(DIAG_LEFT))
+  fmt.Printf("game diag right is: %s\n",game.diagonal(DIAG_RIGHT))
 }
 
 func processInputFile(path string) {
@@ -106,10 +106,10 @@ func processInputFile(path string) {
 }
 
 type TicTacToeGame struct {
-  grid [][]rune
+  grid [][]byte
 }
 
-func (game *TicTacToeGame) getWinner() rune {
+func (game *TicTacToeGame) getWinner() byte {
   //# check each column
   //# check both diagonals
 
@@ -140,9 +140,43 @@ func (game *TicTacToeGame) hasWinner() bool {
   return true
 }
 
-func (game *TicTacToeGame) checkCol(colNum int) rune {
-  var prevChar rune
-  var currentChar rune
+func (game *TicTacToeGame) column(colNum int) []byte {
+
+  colBytes := make([]byte, 4)
+
+  for i := 0; i < 4; i++ {
+    colBytes = append(colBytes, game.grid[i][colNum])
+  }
+
+  return colBytes
+}
+
+func (game *TicTacToeGame) row(rowNum int) []byte {
+  return game.grid[rowNum]
+}
+
+const DIAG_LEFT int  = 1
+const DIAG_RIGHT int= 2
+
+func (game *TicTacToeGame) diagonal(diagDir int) []byte {
+  diagBytes := make([]byte, 4)
+
+  for i := 0; i < 4; i = i + 1 {
+    if diagDir == DIAG_LEFT {
+      diagBytes = append(diagBytes, game.grid[i][i])
+    }
+
+    if diagDir == DIAG_RIGHT {
+      diagBytes = append(diagBytes, game.grid[i][3-i])
+    }
+  }
+
+  return diagBytes
+}
+
+func (game *TicTacToeGame) checkCol(colNum int) byte {
+  var prevChar byte
+  var currentChar byte
 
   for i := 0; i < 4; i++ {
     currentChar = game.grid[i][colNum]
@@ -159,9 +193,9 @@ func (game *TicTacToeGame) checkCol(colNum int) rune {
   return currentChar
 }
 
-func (game *TicTacToeGame) checkRow(rowNum int) rune {
-  var prevChar rune
-  var currentChar rune
+func (game *TicTacToeGame) checkRow(rowNum int) byte {
+  var prevChar byte
+  var currentChar byte
 
   for j := 0; j < 4; j++ {
     currentChar = game.grid[rowNum][j]

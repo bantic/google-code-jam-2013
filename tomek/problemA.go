@@ -87,11 +87,20 @@ func processTest(testNumber int, testLines []string) {
   }
 
   game := TicTacToeGame{grid:grid}
-  fmt.Printf("game is: %s\n",game)
-  fmt.Printf("game row 1 is: %s\n",game.row(1))
-  fmt.Printf("game col 2 is: %s\n",game.column(2))
-  fmt.Printf("game diag left is: %s\n",game.diagonal(DIAG_LEFT))
-  fmt.Printf("game diag right is: %s\n",game.diagonal(DIAG_RIGHT))
+  for i := 0; i < 4; i++ {
+    row := game.row(i)
+    //fmt.Printf("Check game row %s: len %d\n",row,len(row))
+    fmt.Printf("Check game row %s: %q\n", row, checkArray(row))
+
+    col := game.column(i)
+    //fmt.Printf("Check game column %s. len: %d\n", col, len(col))
+    fmt.Printf("Check game column %s: %q\n", col, checkArray(col))
+  }
+  diagLeft := game.diagonal(DIAG_LEFT)
+  fmt.Printf("Check game diag left %s: %q\n", diagLeft, checkArray(diagLeft))
+
+  diagRight := game.diagonal(DIAG_RIGHT)
+  fmt.Printf("Check game diag right %s: %q\n", diagRight, checkArray(diagRight))
 }
 
 func processInputFile(path string) {
@@ -145,7 +154,7 @@ func (game *TicTacToeGame) column(colNum int) []byte {
   colBytes := make([]byte, 4)
 
   for i := 0; i < 4; i++ {
-    colBytes = append(colBytes, game.grid[i][colNum])
+    colBytes[i] = game.grid[i][colNum]
   }
 
   return colBytes
@@ -191,6 +200,44 @@ func (game *TicTacToeGame) checkCol(colNum int) byte {
     prevChar = currentChar
   }
   return currentChar
+}
+
+func checkArray(array []byte) byte {
+  var curVal byte
+
+  seenX := false
+  seenO := false
+
+  //fmt.Println("==================================================")
+  //fmt.Printf("Array: %s\n",array)
+
+  for i := 0; i < len(array); i++ {
+    curVal = array[i]
+    //fmt.Printf("Checking val: %q\n",curVal)
+    if curVal == 'T' { continue }
+    if curVal == '.' {
+      //fmt.Println("Seen '.', returning early")
+      return '.'
+    }
+    if curVal == 'X' { seenX = true }
+    if curVal == 'O' { seenO = true }
+
+    if seenX && seenO {
+      //fmt.Println("Seen x and o, returning")
+      return '.'
+    }
+
+    //fmt.Printf("seenX: %t, seenY: %t\n",seenX,seenO)
+  }
+
+  if !seenX && !seenO {
+    return '.'
+  }
+
+  if seenX { return 'X' }
+  if seenO { return 'O' }
+
+  return '.'
 }
 
 func (game *TicTacToeGame) checkRow(rowNum int) byte {

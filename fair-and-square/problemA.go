@@ -58,11 +58,6 @@ func integerIsPalindrome(x int) bool {
   return str == reverseString(str)
 }
 
-func integerIsPerfectSquare(x int) bool {
-  sqrt := math.Sqrt( float64(x) )
-  return sqrt == math.Floor(sqrt)
-}
-
 func integerIsFairAndSquare(x int, seenPtr *map[int]bool, valuePtr *map[int]bool) bool {
 
   seenMap  := *seenPtr
@@ -80,19 +75,41 @@ func integerIsFairAndSquare(x int, seenPtr *map[int]bool, valuePtr *map[int]bool
     return false
   }
 
-  if !integerIsPerfectSquare(x) {
+  possibleSqrRoot := PerfectSqrRoot(x)
+  if possibleSqrRoot == 0 {
     valueMap[x] = false
     return false
   }
 
-  sqrt := math.Sqrt( float64(x) )
-  if integerIsPalindrome( int(sqrt) ) {
+  if integerIsPalindrome( possibleSqrRoot ) {
     valueMap[x] = true
     return true
   }
 
   valueMap[x] = false
   return false
+}
+
+func PerfectSqrRoot( x int ) int {
+  sqrt := Sqrt( float64(x) )
+  sqrtInt := int(sqrt)
+  if sqrtInt * sqrtInt == x {
+    return sqrtInt
+  }
+
+  return 0
+}
+
+func Sqrt(x float64) (sqrt float64) {
+    z := x / 2.0
+    for i := 0; i < 5; i++ {
+       prevZ := z
+       z = z - ( (z*z - x) / (2*z) )
+       if math.Abs(z - prevZ) < 0.5 {
+           break
+       }
+    }
+    return z
 }
 
 func reverseString(str string) string {

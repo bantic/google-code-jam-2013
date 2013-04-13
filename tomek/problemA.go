@@ -76,31 +76,25 @@ func getTestCases(lines []string) (caseCount int, testLines [][]string) {
 }
 
 func processTest(testNumber int, testLines []string) {
-  fmt.Printf("Case #%d: \n", testNumber + 1)
-  fmt.Printf("game lines: %s\n", testLines)
+  fmt.Printf("Case #%d: ", testNumber + 1)
 
   var grid [][]byte
 
-  for i, line := range testLines {
-    fmt.Printf("line #%d: %s %s\n", i, line, []byte(line))
+  for _, line := range testLines {
     grid = append(grid, []byte(line))
   }
 
   game := TicTacToeGame{grid:grid}
-  for i := 0; i < 4; i++ {
-    row := game.row(i)
-    //fmt.Printf("Check game row %s: len %d\n",row,len(row))
-    fmt.Printf("Check game row %s: %q\n", row, checkArray(row))
-
-    col := game.column(i)
-    //fmt.Printf("Check game column %s. len: %d\n", col, len(col))
-    fmt.Printf("Check game column %s: %q\n", col, checkArray(col))
+  winner := game.getWinner()
+  if winner != '.' {
+    fmt.Printf("%s won\n", string(winner))
+  } else {
+    if game.isFilled() {
+      fmt.Printf("Draw\n")
+    } else {
+      fmt.Printf("Game has not completed\n")
+    }
   }
-  diagLeft := game.diagonal(DIAG_LEFT)
-  fmt.Printf("Check game diag left %s: %q\n", diagLeft, checkArray(diagLeft))
-
-  diagRight := game.diagonal(DIAG_RIGHT)
-  fmt.Printf("Check game diag right %s: %q\n", diagRight, checkArray(diagRight))
 }
 
 func processInputFile(path string) {
@@ -108,7 +102,6 @@ func processInputFile(path string) {
   if err != nil { panic(err) }
 
   caseCount, testLinesArray := getTestCases(lines)
-  fmt.Println(testLinesArray)
   for i := 0; i < caseCount; i++ {
     processTest(i, testLinesArray[i])
   }
@@ -119,34 +112,35 @@ type TicTacToeGame struct {
 }
 
 func (game *TicTacToeGame) getWinner() byte {
-  //# check each column
-  //# check both diagonals
+  var result byte
 
   //# check each row
   for i := 0; i < 4; i++ {
-    rowResult := game.checkRow(i)
-    if rowResult == '.' {
-      break
-    } else {
-      return rowResult
+    row := game.row(i)
+    result = checkArray(row)
+
+    if result != '.' {
+      return result
+    }
+
+    col := game.column(i)
+    result = checkArray(col)
+    if result != '.' {
+      return result
     }
   }
 
-  for j:= 0; j < 4; j++ {
-    colResult := game.checkCol(j)
-    if colResult == '.' {
-      break
-    } else {
-      return colResult
-    }
+  result = checkArray( game.diagonal(DIAG_LEFT) )
+  if result != '.' {
+    return result
+  }
+
+  result = checkArray( game.diagonal(DIAG_RIGHT) )
+  if result != '.' {
+    return result
   }
 
   return '.'
-}
-
-func (game *TicTacToeGame) hasWinner() bool {
-  if game.getWinner() == '.' { return false }
-  return true
 }
 
 func (game *TicTacToeGame) column(colNum int) []byte {
@@ -266,10 +260,6 @@ func (game *TicTacToeGame) isFilled() bool {
     }
   }
   return true
-}
-
-func (game *TicTacToeGame) isDraw() bool {
-  return game.isFilled() && !game.hasWinner()
 }
 
 func main() {

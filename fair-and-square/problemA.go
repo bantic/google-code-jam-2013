@@ -63,14 +63,35 @@ func integerIsPerfectSquare(x int) bool {
   return sqrt == math.Floor(sqrt)
 }
 
-func integerIsFairAndSquare(x int) bool {
-  if !integerIsPalindrome(x) { return false }
+func integerIsFairAndSquare(x int, seenPtr *map[int]bool, valuePtr *map[int]bool) bool {
 
-  if !integerIsPerfectSquare(x) { return false }
+  seenMap  := *seenPtr
+  valueMap := *valuePtr
+
+  if seenMap[x] {
+    // fmt.Printf("returning from cache: %d -> %t", x, valueMap[x])
+    return valueMap[x]
+  } else {
+    seenMap[x] = true
+  }
+
+  if !integerIsPalindrome(x) {
+    valueMap[x] = false
+    return false
+  }
+
+  if !integerIsPerfectSquare(x) {
+    valueMap[x] = false
+    return false
+  }
 
   sqrt := math.Sqrt( float64(x) )
-  if integerIsPalindrome( int(sqrt) ) { return true }
+  if integerIsPalindrome( int(sqrt) ) {
+    valueMap[x] = true
+    return true
+  }
 
+  valueMap[x] = false
   return false
 }
 
@@ -83,7 +104,7 @@ func reverseString(str string) string {
   return string(bytes)
 }
 
-func processInputFile(path string) {
+func processInputFile(path string, seenPtr *map[int]bool, valuePtr *map[int]bool) {
   lines, err := readLines(path)
   if err != nil { panic(err) }
 
@@ -95,24 +116,27 @@ func processInputFile(path string) {
 
   for i := 0; i < testCases; i++ {
     nextLine := lines[i]
-    fmt.Printf("Case #%d: %s\n", (i+1), lineResult(nextLine))
+    fmt.Printf("Case #%d: %s\n", (i+1), lineResult(nextLine, seenPtr, valuePtr))
   }
 }
 
-func lineResult(line string) string {
+func lineResult(line string, seenPtr *map[int]bool, valuePtr *map[int]bool) string {
   bounds := integersFromString( line )
-  // fmt.Println("start %d, end %d", bounds[0], bounds[1])
-  return fmt.Sprintf("%d", countFairAndSquareIntegersInBounds( bounds[0], bounds[1] ) )
+  return fmt.Sprintf("%d", countFairAndSquareIntegersInBounds( bounds[0], bounds[1], seenPtr, valuePtr ) )
 }
 
-func countFairAndSquareIntegersInBounds(startInt, endInt int) int {
+func countFairAndSquareIntegersInBounds(startInt, endInt int, seenPtr *map[int]bool, valuePtr *map[int]bool) int {
   count := 0
   for i := startInt; i <= endInt; i++ {
-    if integerIsFairAndSquare(i) { count++ }
+    if integerIsFairAndSquare(i, seenPtr, valuePtr) { count++ }
   }
   return count
 }
 
 func main() {
-  processInputFile( "input.in" )
+  seenMap := make(map[int]bool)
+  valueMap := make(map[int]bool)
+
+  argsWithoutProg := os.Args[1:]
+  processInputFile( argsWithoutProg[0], &seenMap, &valueMap)
 }
